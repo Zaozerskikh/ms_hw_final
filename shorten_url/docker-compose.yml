@@ -1,0 +1,57 @@
+version: '3.8'
+
+networks:
+  shorten-url:
+    driver: bridge
+
+services:
+  api:
+    container_name: shorten-url-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "2710:2710"
+    volumes:
+      - ./:/srv/app
+    env_file:
+      - .env
+    depends_on:
+      - db
+    networks:
+      - shorten-url
+
+  db:
+    container_name: shorten-url-db
+    image: postgres:14-alpine
+    environment:
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    ports:
+      - "${DB_CONTAINER_PORT}:${DB_PORT}"
+    networks:
+      - shorten-url
+    volumes:
+      - shorten-url-db-data:/var/lib/postgresql/data
+
+  pg-admin:
+    container_name: shorten-url-pgadmin
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    depends_on:
+      - db
+    ports:
+      - "5050:80"
+    networks:
+      - shorten-url
+    volumes:
+      - shorten-url-pg-admin-data:/var/lib/pgadmin4/data
+
+volumes:
+  shorten-url-db-data:
+  shorten-url-pg-admin-data:

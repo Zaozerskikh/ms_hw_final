@@ -1,0 +1,57 @@
+version: '3.8'
+
+networks:
+  todo-list:
+    driver: bridge
+
+services:
+  api:
+    container_name: todo-list-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "2820:2820"
+    volumes:
+      - ./:/srv/app
+    env_file:
+      - .env
+    depends_on:
+      - db
+    networks:
+      - todo-list
+
+  db:
+    container_name: todo-list-db
+    image: postgres:14-alpine
+    environment:
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    ports:
+      - "${DB_CONTAINER_PORT}:${DB_PORT}"
+    networks:
+      - todo-list
+    volumes:
+      - todo-list-db-data:/var/lib/postgresql/data
+
+  pg-admin:
+    container_name: todo-list-pgadmin
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    depends_on:
+      - db
+    ports:
+      - "5051:80"
+    networks:
+      - todo-list
+    volumes:
+      - todo-list-pg-admin-data:/var/lib/pgadmin4/data
+
+volumes:
+  todo-list-db-data:
+  todo-list-pg-admin-data:
