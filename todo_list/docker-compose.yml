@@ -7,6 +7,7 @@ networks:
 services:
   api:
     container_name: todo-list-api
+    image: s4rg/todo-list-api:latest
     build:
       context: .
       dockerfile: Dockerfile
